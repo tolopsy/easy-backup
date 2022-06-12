@@ -1,0 +1,5 @@
+/cmd/backupd/backups
+/cmd/backupd/backupd
+/cmd/backup/backup
+/cmd/backup/data
+.DS_Store
