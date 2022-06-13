@@ -2,6 +2,7 @@ package main
 
 import (
 	backup "easy_backup"
+	pathutils "easy_backup/path_utils"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -9,24 +10,14 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
 	"github.com/matryer/filedb"
 )
 
-// path is same as in backup program.
-// It is duplicated thus rather than placed in a different package
-// to avoid extra dependency injection
-// with a little overhead trade-off (which in this case is the duplication)
-type path struct {
-	Path string
-	Hash string
-}
-
-func (p path) String() string {
-	return fmt.Sprintf("%s [%s]", p.Path, p.Hash)
-}
+type path = pathutils.Path
 
 func main() {
 	var fatalErr error
@@ -36,10 +27,13 @@ func main() {
 		}
 	}()
 
+	getAbsPath := pathutils.GetAbsPath
+	workingDir, _ := os.Getwd()
+	defaultDbPath := filepath.Join(filepath.Dir(workingDir), "backup", "data")
 	var (
 		interval = flag.Duration("interval", 10*time.Second, "Backup cycle: Interval between archive process")
 		backupTo = flag.String("backup_dir", "backups", "Path to archive location")
-		dbPath   = flag.String("db", "../backup/data", "Filesystem DB storing paths of files to backup")
+		dbPath   = flag.String("db", defaultDbPath, "Filesystem DB storing paths of files to backup")
 	)
 	flag.Parse()
 
@@ -49,14 +43,14 @@ func main() {
 		Destination: *backupTo,
 	}
 
-	db, err := filedb.Dial(*dbPath)
+	db, err := filedb.Dial(getAbsPath(*dbPath))
 	if err != nil {
 		fatalErr = err
 		return
 	}
 	defer db.Close()
 
-	pathCollection, err := db.C("paths")
+	pathCollection, err := db.C(pathutils.PathFileName)
 	if err != nil {
 		fatalErr = err
 		return
@@ -78,6 +72,7 @@ func main() {
 	}
 	if len(backupHandler.Paths) < 1 {
 		fatalErr = errors.New("no path: add atleast one path using the backup tool")
+		return
 	}
 
 	runBackupCycle(backupHandler, pathCollection)
@@ -97,9 +92,9 @@ func main() {
 
 func runBackupCycle(handler *backup.Handler, collection *filedb.C) {
 	log.Println("Running backup cycle")
-	counter, err := handler.Run()
-	if err != nil {
-		log.Fatalln("Failed to backup - ", err)
+	counter, errorList := handler.Run()
+	if len(errorList) != 0 {
+		log.Printf("Failed to backup - %+q\n\n", errorList)
 	}
 
 	if counter == 0 {
@@ -107,10 +102,13 @@ func runBackupCycle(handler *backup.Handler, collection *filedb.C) {
 		return
 	}
 
+
 	log.Printf("\t%d Directories backed up", counter)
 	var path path
+
+	// update hash of all paths
 	collection.SelectEach(func(_ int, data []byte) (bool, []byte, bool) {
-		if err = json.Unmarshal(data, &path); err != nil {
+		if err := json.Unmarshal(data, &path); err != nil {
 			log.Println("Failed to parse data (skipping...)", err)
 			return true, data, false
 		}
