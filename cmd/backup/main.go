@@ -1,35 +1,32 @@
 package main
 
 import (
+	pathutils "easy_backup/path_utils"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/matryer/filedb"
 )
 
-type path struct {
-	Path string
-	Hash string
-}
-
-func (p path) String() string {
-	return fmt.Sprintf("%s [%s]", p.Path, p.Hash)
-}
+type path = pathutils.Path
 
 func main() {
 	var fatalErr error
-	pathFileName := "Paths"
-	dbDefaultPath := "./data"
 	defer func() {
 		if fatalErr != nil {
 			flag.PrintDefaults()
 			log.Fatalln(fatalErr)
 		}
 	}()
+	getAbsPath := pathutils.GetAbsPath
+	workingDir, _ := os.Getwd()
+	dbDefaultPath := filepath.Join(workingDir, "data")
 
 	dbPath := flag.String("db", dbDefaultPath, "Filesystem DB storing paths of files to backup")
 	flag.Parse()
@@ -38,14 +35,15 @@ func main() {
 		fatalErr = errors.New("invalid usage: arguments must be specified")
 		return
 	}
-	db, err := filedb.Dial(*dbPath)
+
+	db, err := filedb.Dial(pathutils.GetAbsPath(*dbPath))
 	if err != nil {
 		fatalErr = err
 		return
 	}
 	defer db.Close()
 
-	pathCollection, err := db.C(pathFileName)
+	pathCollection, err := db.C(pathutils.PathFileName)
 	if err != nil {
 		fatalErr = err
 		return
@@ -72,7 +70,7 @@ func main() {
 			return
 		}
 		for _, p := range args[1:] {
-			path := &path{Path: p, Hash: "Not backed up yet"}
+			path := &path{Path: getAbsPath(p), Hash: "Not backed up yet"}
 			if err = pathCollection.InsertJSON(path); err != nil {
 				fatalErr = err
 				return
@@ -81,14 +79,14 @@ func main() {
 		}
 	case "remove":
 		var path path
-		err = pathCollection.RemoveEach(func(_ int, data []byte) (bool, bool){
+		err = pathCollection.RemoveEach(func(_ int, data []byte) (bool, bool) {
 			if err := json.Unmarshal(data, &path); err != nil {
 				fatalErr = err
 				return false, true
 			}
 
 			for _, pathFromArgs := range args[1:] {
-				if path.Path == pathFromArgs {
+				if getAbsPath(path.Path) == getAbsPath(pathFromArgs) {
 					fmt.Printf("- %s\n", path)
 					return true, false
 				}
