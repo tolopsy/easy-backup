@@ -14,7 +14,7 @@ type Handler struct {
 
 func (handler *Handler) Run() (int, []error) {
 	var counter int
-	errorList := make([]error, 0, 2)
+	errorList := make([]error, 0)
 	for path, lastHash := range handler.Paths {
 		newHash, err := HashFile(path)
 		if err != nil {
