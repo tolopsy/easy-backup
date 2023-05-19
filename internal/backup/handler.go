@@ -1,7 +1,7 @@
 package backup
 
 import (
-	pathutils "easy_backup/path_utils"
+	"easy_backup/internal/pathutils"
 	"fmt"
 	"path/filepath"
 	"sync"

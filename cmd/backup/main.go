@@ -1,7 +1,7 @@
 package main
 
 import (
-	pathutils "easy_backup/path_utils"
+	"easy_backup/internal/pathutils"
 	"encoding/json"
 	"errors"
 	"flag"

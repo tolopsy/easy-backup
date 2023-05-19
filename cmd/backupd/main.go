@@ -1,8 +1,8 @@
 package main
 
 import (
-	backup "easy_backup"
-	pathutils "easy_backup/path_utils"
+	"easy_backup/internal/backup"
+	"easy_backup/internal/pathutils"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -116,7 +116,7 @@ func runBackupCycle(handler *backup.Handler, collection *filedb.C) {
 	// update hash of all paths
 	collection.SelectEach(func(_ int, data []byte) (bool, []byte, bool) {
 		if err := json.Unmarshal(data, &path); err != nil {
-			log.Println("Failed to parse data (skipping...)", err)
+			log.Println("Failed to parse data to json (skipping...)", err)
 			return true, data, false
 		}
 
