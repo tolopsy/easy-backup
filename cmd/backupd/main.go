@@ -34,9 +34,10 @@ func main() {
 		interval = flag.Duration("interval", 10*time.Second, "Backup cycle: Interval between archive process")
 		backupTo = flag.String("backup_dir", "backups", "Path to archive location")
 		dbPath   = flag.String("db", defaultDbPath, "Filesystem DB storing paths of files to backup")
+		once = flag.Bool("once", false, "Use to run backup once")
 	)
 	flag.Parse()
-
+	
 	backupHandler := &backup.Handler{
 		Paths:       make(map[string]string),
 		Archiver:    backup.ZIP,
@@ -76,8 +77,14 @@ func main() {
 	}
 
 	runBackupCycle(backupHandler, pathCollection)
+
+	if (*once) {
+		return
+	}
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
 	for {
 		select {
 		case <-time.After(*interval):
@@ -112,12 +119,15 @@ func runBackupCycle(handler *backup.Handler, collection *filedb.C) {
 			log.Println("Failed to parse data (skipping...)", err)
 			return true, data, false
 		}
+
 		path.Hash = handler.Paths[path.Path]
 		newData, err := json.Marshal(path)
+
 		if err != nil {
-			log.Println("Failed to jsonify path struct (skipping...)", err)
+			log.Println("Failed to parse path struct to json (skipping...)", err)
 			return true, data, false
 		}
+
 		return true, newData, false
 	})
 }
