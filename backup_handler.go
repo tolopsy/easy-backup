@@ -54,7 +54,9 @@ func (handler *Handler) Run() (int, []error) {
 	numRunWorkers := 2
 	pathChan := make(chan pathutils.Path, len(handler.Paths))
 	resultChan := make(chan pathutils.Path, len(handler.Paths))
-	errChan := make(chan error, numRunWorkers)		// channel to pass error buffered by number of run workers
+
+	// channel to pass error buffered by number of run workers
+	errChan := make(chan error, numRunWorkers)
 
 	// start the workers
 	for id := 1; id <= numRunWorkers; id++ {
@@ -71,11 +73,13 @@ func (handler *Handler) Run() (int, []error) {
 		close(pathChan)
 		close(errChan)
 	}()
-
+	
+	// collect errors
 	for errValue := range errChan {
 		errorList = append(errorList, errValue)
 	}
 
+	// update hash for processed paths
 	for resultCount := 1; resultCount <= counter; resultCount++ {
 		path := <- resultChan
 		handler.Paths[path.Path] = path.Hash

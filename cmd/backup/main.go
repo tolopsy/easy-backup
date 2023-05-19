@@ -24,6 +24,7 @@ func main() {
 			log.Fatalln(fatalErr)
 		}
 	}()
+
 	getAbsPath := pathutils.GetAbsPath
 	workingDir, _ := os.Getwd()
 	dbDefaultPath := filepath.Join(workingDir, "data")
@@ -36,7 +37,7 @@ func main() {
 		return
 	}
 
-	db, err := filedb.Dial(pathutils.GetAbsPath(*dbPath))
+	db, err := filedb.Dial(getAbsPath(*dbPath))
 	if err != nil {
 		fatalErr = err
 		return
@@ -70,7 +71,7 @@ func main() {
 			return
 		}
 		for _, p := range args[1:] {
-			path := &path{Path: getAbsPath(p), Hash: "Not backed up yet"}
+			path := &path{Path: getAbsPath(p), Hash: ""}
 			if err = pathCollection.InsertJSON(path); err != nil {
 				fatalErr = err
 				return

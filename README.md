@@ -53,13 +53,15 @@ Paths can be relative or absolute. And you can add as many paths as you want by 
 		Like this 👉🏾
 	`./backupd -archive=/path/to/archive`
 	
-	- The default backup cycle is 10 seconds. This means that every 10 seconds, the daemon will perform the backup process. 
+	- The backup cycle runs every 10 seconds by default. This means that every 10 seconds, the daemon will perform the backup process. 
 
-		You can update this cycle by appending an interval flag to the command.
+		You can update this cycle interval by appending an interval flag to the command.
 		
 		Like this 👉🏾
 		`./backupd -interval=40s`
 	's' in '40s' above represents seconds. You can specify any interval you wish. 
 	Use 'h' for hour and 'm' for minute. You can also combine the interval units like this - `./backupd -interval=1h20m30s`.
+
+    - To run backup once, include the `--once` flag.
 
 Adios!

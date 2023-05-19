@@ -11,7 +11,7 @@ type Path struct {
 }
 
 func (p Path) String() string {
-	return fmt.Sprintf("%s [%s]", p.Path, p.Hash)
+	return fmt.Sprintf("%s (%s)", p.Path, p.Hash)
 }
 
 func GetAbsPath(name string) string {
