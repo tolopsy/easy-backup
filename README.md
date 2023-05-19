@@ -28,7 +28,7 @@ You can find `backup` and `backupd` inside the [cmd folder](https://github.com/t
 Paths can be relative or absolute. And you can add as many paths as you want by separating them with a space.
 	- To remove path(s):
 	`./backup remove ./path/to/file1 /path/to/folder2`
-	-To list paths in db:
+	- To list paths in db:
 	`./backup list`
 
 	Note: The default location for the file-based db is ./cmd/backup/data. But you can specify a custom location by using the -db flag when running the backup program.
