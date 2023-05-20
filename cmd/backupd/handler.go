@@ -1,7 +1,8 @@
-package backup
+package main
 
 import (
-	"easy_backup/internal/pathutils"
+	"easy_backup/utils"
+	"easy_backup/internal/archiver"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -12,14 +13,14 @@ type Handler struct {
 	mu            sync.Mutex
 	wg            sync.WaitGroup
 	Paths         map[string]string
-	Archiver
+	archiver.Archiver
 	Destination string
 }
 
-func (handler *Handler) startRunWorker(id int, p <-chan pathutils.Path, results chan<- pathutils.Path, resultCounter *int, errChan chan<- error) {
+func (handler *Handler) startRunWorker(id int, p <-chan utils.Path, results chan<- utils.Path, resultCounter *int, errChan chan<- error) {
 	for path := range p {
 		fmt.Printf("Worker %v processing path %s\n", id, path)
-		newHash, err := HashFile(path.Path)
+		newHash, err := utils.HashFile(path.Path)
 		if err != nil {
 			errChan <- err
 			handler.wg.Done()
@@ -52,8 +53,8 @@ func (handler *Handler) Run() (int, []error) {
 	var counter int
 	errorList := make([]error, 0)
 	numRunWorkers := 2
-	pathChan := make(chan pathutils.Path, len(handler.Paths))
-	resultChan := make(chan pathutils.Path, len(handler.Paths))
+	pathChan := make(chan utils.Path, len(handler.Paths))
+	resultChan := make(chan utils.Path, len(handler.Paths))
 
 	// channel to pass error buffered by number of run workers
 	errChan := make(chan error, numRunWorkers)
@@ -65,7 +66,7 @@ func (handler *Handler) Run() (int, []error) {
 
 	handler.wg.Add(len(handler.Paths))
 	for path, lastHash := range handler.Paths {
-		pathChan <- pathutils.Path{Path: path, Hash: lastHash}
+		pathChan <- utils.Path{Path: path, Hash: lastHash}
 	}
 
 	go func() {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"easy_backup/internal/pathutils"
+	"easy_backup/utils"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -14,7 +14,8 @@ import (
 	"github.com/matryer/filedb"
 )
 
-type path = pathutils.Path
+type path = utils.Path
+var getAbsPath = utils.GetAbsPath
 
 func main() {
 	var fatalErr error
@@ -25,26 +26,31 @@ func main() {
 		}
 	}()
 
-	getAbsPath := pathutils.GetAbsPath
 	workingDir, _ := os.Getwd()
 	dbDefaultPath := filepath.Join(workingDir, "data")
 
 	dbPath := flag.String("db", dbDefaultPath, "Filesystem DB storing paths of files to backup")
 	flag.Parse()
+
 	args := flag.Args()
 	if len(args) < 1 {
 		fatalErr = errors.New("invalid usage: arguments must be specified")
 		return
 	}
 
-	db, err := filedb.Dial(getAbsPath(*dbPath))
+	err := os.MkdirAll(*dbPath, os.ModePerm)
+	if err != nil {
+		log.Println(err)
+	}
+
+	db, err := filedb.Dial(*dbPath)
 	if err != nil {
 		fatalErr = err
 		return
 	}
 	defer db.Close()
 
-	pathCollection, err := db.C(pathutils.PathFileName)
+	pathCollection, err := db.C(utils.PathFileName)
 	if err != nil {
 		fatalErr = err
 		return

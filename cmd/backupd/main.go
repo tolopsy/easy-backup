@@ -1,8 +1,8 @@
 package main
 
 import (
-	"easy_backup/internal/backup"
-	"easy_backup/internal/pathutils"
+	"easy_backup/internal/archiver"
+	"easy_backup/utils"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -17,7 +17,8 @@ import (
 	"github.com/matryer/filedb"
 )
 
-type path = pathutils.Path
+type path = utils.Path
+var getAbsPath = utils.GetAbsPath
 
 func main() {
 	var fatalErr error
@@ -27,21 +28,21 @@ func main() {
 		}
 	}()
 
-	getAbsPath := pathutils.GetAbsPath
 	workingDir, _ := os.Getwd()
 	defaultDbPath := filepath.Join(workingDir, "data")
 
 	var (
 		interval = flag.Duration("interval", 10*time.Second, "Backup cycle: Interval between archive process")
+		// cloud = flag.String("cloud", "aws", "cloud service to send files to\noptions: aws | google")
 		backupTo = flag.String("archive", "backups", "Path to archive location")
 		dbPath   = flag.String("db", defaultDbPath, "Filesystem DB storing paths of files to backup")
 		once = flag.Bool("once", false, "Use to run backup once")
 	)
 	flag.Parse()
 
-	backupHandler := &backup.Handler{
+	backupHandler := &Handler{
 		Paths:       make(map[string]string),
-		Archiver:    backup.ZIP,
+		Archiver:    archiver.ZIP,
 		Destination: *backupTo,
 	}
 
@@ -52,7 +53,7 @@ func main() {
 	}
 	defer db.Close()
 
-	pathCollection, err := db.C(pathutils.PathFileName)
+	pathCollection, err := db.C(utils.PathFileName)
 	if err != nil {
 		fatalErr = err
 		return
@@ -73,7 +74,7 @@ func main() {
 		return
 	}
 	if len(backupHandler.Paths) < 1 {
-		fatalErr = errors.New("no path: add atleast one path using the backup tool")
+		fatalErr = errors.New("no path: add atleast one path using the backup management tool")
 		return
 	}
 
@@ -98,7 +99,7 @@ func main() {
 	}
 }
 
-func runBackupCycle(handler *backup.Handler, collection *filedb.C) {
+func runBackupCycle(handler *Handler, collection *filedb.C) {
 	log.Println("Running backup cycle")
 	counter, errorList := handler.Run()
 	if len(errorList) != 0 {

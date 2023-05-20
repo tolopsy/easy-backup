@@ -1,4 +1,4 @@
-package pathutils
+package utils
 
 import (
 	"fmt"
