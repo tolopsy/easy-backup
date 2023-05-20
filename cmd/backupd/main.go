@@ -29,15 +29,16 @@ func main() {
 
 	getAbsPath := pathutils.GetAbsPath
 	workingDir, _ := os.Getwd()
-	defaultDbPath := filepath.Join(filepath.Dir(workingDir), "backup", "data")
+	defaultDbPath := filepath.Join(workingDir, "data")
+
 	var (
 		interval = flag.Duration("interval", 10*time.Second, "Backup cycle: Interval between archive process")
-		backupTo = flag.String("backup_dir", "backups", "Path to archive location")
+		backupTo = flag.String("archive", "backups", "Path to archive location")
 		dbPath   = flag.String("db", defaultDbPath, "Filesystem DB storing paths of files to backup")
 		once = flag.Bool("once", false, "Use to run backup once")
 	)
 	flag.Parse()
-	
+
 	backupHandler := &backup.Handler{
 		Paths:       make(map[string]string),
 		Archiver:    backup.ZIP,

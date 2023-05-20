@@ -1,6 +1,5 @@
-/cmd/backupd/backups
-/cmd/backupd/backupd
-cmd/backup/backup
-cmd/backup/data/
+backups/
+dist/
+data/
 todo.txt
 .DS_Store

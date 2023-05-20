@@ -1,11 +1,9 @@
 build:
 	@echo "Building backup management tool..."
-	@cd ./cmd/backup; \
-	go build -o backup
+	go build -o dist/ ./cmd/backup
 	@echo "Management tool build complete!"
 
 	@echo "Building backup daemon tool..."
-	@cd ./cmd/backupd; \
-	go build -o backupd
+	go build -o dist/ ./cmd/backupd
 	@echo "Daemon buld complete!"
 	
