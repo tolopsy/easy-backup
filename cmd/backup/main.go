@@ -64,7 +64,7 @@ func main() {
 				fatalErr = err
 				return true
 			}
-			fmt.Printf("=%s\n", path)
+			fmt.Printf("= %s\n", path)
 			return false
 		})
 		if err != nil {
