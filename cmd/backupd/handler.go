@@ -1,10 +1,11 @@
 package main
 
 import (
-	"easy_backup/utils"
 	"easy_backup/internal/archiver"
+	"easy_backup/utils"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -92,6 +93,13 @@ func (handler *Handler) Run() (int, []error) {
 
 func (handler *Handler) backup(path string) error {
 	dirName := filepath.Base(path)
-	fileName := fmt.Sprintf(handler.GetBackupFileFormat(), time.Now().UnixNano())
-	return handler.Archive(path, filepath.Join(handler.Destination, dirName, fileName))
+	fileName := fmt.Sprintf(archiver.GetBackupFileFormat(), time.Now().UnixNano())
+	locationElem := []string{handler.Destination, dirName, fileName}
+
+	destination := filepath.Join(locationElem...)
+	if _, ok := handler.Archiver.(*archiver.S3Archiver); ok {
+		destination = strings.Join(locationElem, "/")
+	}
+
+	return handler.Archive(path, destination)
 }

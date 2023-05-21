@@ -3,3 +3,4 @@ dist/
 data/
 todo.txt
 .DS_Store
+.env

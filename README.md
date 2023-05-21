@@ -37,13 +37,16 @@ Paths can be relative or absolute. And you can add as many paths as you want by 
 ### How to run the backup daemon - `backupd`
 
 1. Simply run `./dist/backupd` to start the backup process.
-	
+    The backup daemon backs up into AWS S3 by default.
+    The following environment variables are mandatory: S3Bucket, AWSRegion, AWSAccessKeyId and AWSSecretAccessKey
+	- To use local storage instead of aws s3, set cloud flag to false. 👉🏾 `./dist/backupd -cloud=false`. The aforelisted environment variables are not needed for local storage.
+
 	- **To specify a custom location for your file-based db**, append a db flag to the command.
 	
 		Like this 👉🏾
 	`./dist/backupd -db=/path/to/customdb`
 	
-	- By default, the backup zip files will be stored in an archive directory named "backups" inside the project directory. To specify a custom archive directory, append an archive flag to the command.
+	- By default, the backup zip files will be stored in an folder named "backups" inside the s3 bucket (or project directory when using local storage). To specify a custom archive directory, append an archive flag to the command.
 	
 		Like this 👉🏾
 	`./dist/backupd -archive=/path/to/archive`
