@@ -1,5 +1,5 @@
 # Easy Backup
-Easy Backup is a CLI tool to backup files in your local computer into a dedicated directory.
+Easy Backup is a CLI tool to automate compression and backup of files into AWS S3 or a dedicated directory.
 Easy Backup is based on two main programs.
 
  1. `backup` program: It is responsible for management of records in the database. You can use the `backup` executable to add or remove files. You can also use the executable to list all the files to backup. In a nutshell, `backup` is the management tool.
